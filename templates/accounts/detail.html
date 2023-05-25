@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container-fluid bg-secondary text-white py-3 mb-5">
+        <h2 class="text-center">Détails de l'utilisateur</h2>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <tbody>
+                            <tr>
+                                <th scope="row">Nom:</th>
+                                <td>{{ user.last_name }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Prénom:</th>
+                                <td>{{ user.first_name }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Email:</th>
+                                <td>{{ user.email }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Mobile:</th>
+                                <td>{{ user.mobile }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                            <a href="{% url 'logout' %}" class="btn btn-secondary">Déconnexion</a>
+                        </div>
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                            <a href="{% url 'password_change' %}" class="btn btn-secondary">Changer le mot de passe</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

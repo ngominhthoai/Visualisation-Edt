@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="container">
+    <h1 class="text-center"> Liste des emploi du temps </h1>
+     <form id="form" method="post">
+        {% csrf_token %}
+        <label for="edt_id">Choisir un emploi du temps</label>
+         <select name="edt_id">
+            {% for edt in edts %}
+                <option value="{{ edt.id }}">{{ edt.id }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="datepicker">Choisir une date</label>
+        <input type="text" id="datepicker" name="date">
+        <br>
+        <button type="submit">Load EDT</button>
+    </form>
+    </div>
+{% endblock %}
+{% block extrabody %}
+{#import des bibliotheques onlines#}
+{# jquery et datepicker#}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+{#css de datepicker#}
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+{#script de datepicker#}
+<script>
+    $( function() {
+        $( "#datepicker" ).datepicker({
+            language: 'fr',
+            dateFormat: 'yy-mm-dd',
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '2018:2019',
+            placeholder: "yyyy-mm-dd"
+        });
+    } );
+
+    $(function(){
+       //form submit -> chuyen sang trang home
+         $('#form').submit(function(){
+             //gui request toi server
+                $.ajax({
+                    url: "{% url 'load_events2' %}",
+                    type: "POST",
+                    data: $('#form').serialize(),
+                    {#chuyen sang trang home#}
+                   function(){
+                        window.location.href = "{% url 'home2' %}";
+                    }
+                });
+         });
+    });
+</script>
+{% endblock %}
+

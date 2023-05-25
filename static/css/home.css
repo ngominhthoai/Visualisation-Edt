@@ -1,0 +1,10 @@
+div.row div.card{
+    width: 18rem;
+    margin: 10px;
+}
+
+div.row div.card img{
+    width: 286px;
+    height: 190px;
+    object-fit: cover;
+}

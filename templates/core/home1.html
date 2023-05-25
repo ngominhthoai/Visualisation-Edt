@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Home{% endblock %}
+{% block css %}
+    {#    <link rel="stylesheet" href="{% static 'css/home.css' %}">#}
+    {#    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.0/fullcalendar.min.css" />#}
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.print.min.css" rel="stylesheet"
+          media="print">
+
+    <style>
+        .line-break {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-2" style="background: cornsilk">
+            <h3 class="text-center">Filtres</h3>
+            <label for="roomFilter">Room:</label>
+            <select id="roomFilter" class="form-control filter-select">
+                <option value="">All Rooms</option>
+                {% for salle in salles %}
+                    <option value="{{ salle }}">{{ salle }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="teacherFilter">Teacher:</label>
+            <select id="teacherFilter" class="form-control filter-select">
+                <option value="">All Teachers</option>
+                {% for prof in profs %}
+                    <option value="{{ prof }}">{{ prof }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="categoryFilter">Categories:</label>
+            <select id="categoryFilter" class="form-control filter-select">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                    <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="matiereFilter">Matières:</label>
+            <select id="matiereFilter" class="form-control filter-select">
+                <option value="">All Subjects</option>
+                {% for mat in matieres %}
+                    <option value="{{ mat }}">{{ mat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-10" id='calendar'></div>
+    </div>
+
+
+{% endblock %}
+{% block extrabody %}
+    <!-- Import library jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Import libary FullCalendar and CSS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+
+    <!-- Import Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" rel="stylesheet">
+
+
+    <!-- Import Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Lưu giá trị hiện tại của các bộ lọc
+            var roomFilterValue = '';
+            var teacherFilterValue = '';
+            var categoryFilterValue = '';
+            var matiereFilterValue = '';
+
+            // Xử lý sự kiện khi các lựa chọn bộ lọc thay đổi
+            $('#roomFilter, #teacherFilter, #categoryFilter, #matiereFilter').change(function () {
+                // Cập nhật giá trị của các bộ lọc
+                roomFilterValue = $('#roomFilter').val();
+                teacherFilterValue = $('#teacherFilter').val();
+                categoryFilterValue = $('#categoryFilter').val();
+                matiereFilterValue = $('#matiereFilter').val();
+
+                // Gọi hàm vẽ lại lịch
+                rerenderCalendar();
+            });
+
+            // Hàm vẽ lại lịch dựa trên các giá trị hiện tại của các bộ lọc
+            function rerenderCalendar() {
+                $('#calendar').fullCalendar('rerenderEvents');
+            }
+
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,,agendaWeek,agendaDay',
+                },
+                //display all day
+                allDaySlot: false,
+                defaultView: 'agendaWeek',
+                //show week numbers
+                weekNumbers: true,
+                firstDay: 1,
+                //start time and end time
+                minTime: "07:00:00",
+                maxTime: "21:00:00",
+                events:{{ sessions|safe }},
+                eventClick: function (calEvent, jsEvent, view) {
+                    // traite les données de l'événement
+                    var title = calEvent.title;
+                    var id = calEvent.id;
+                    var extendedProps = calEvent.extendedProps;
+                    var html = '</br>';
+                    var start = moment(calEvent.start).format('dddd, DD MMMM');
+                    var end = moment(calEvent.end).format('HH:mm');
+                    var start_time = moment(calEvent.start).format('HH:mm');
+                    var end_time = moment(calEvent.end).format('HH:mm');
+                    // Tạo một jQuery object từ chuỗi HTML
+                    var $modal = $('<div class="modal fade" id="eventModal" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel" aria-hidden="true">');
+
+                    var $modalDialog = $('<div class="modal-dialog" role="document">');
+                    var $modalContent = $('<div class="modal-content">');
+                    var $modalHeader = $('<div class="modal-header">');
+                    var $modalTitle = $('<h5 class="modal-title" id="eventModalLabel">' + title + '</h5>');
+                    var $modalCloseButton = $('<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>');
+                    var $modalBody = $('<div class="modal-body">');
+
+                    $modalHeader.append($modalTitle, $modalCloseButton);
+                    $modalContent.append($modalHeader, $modalBody);
+                    $modalDialog.append($modalContent);
+                    $modal.append($modalDialog);
+
+                    // Đặt màu nền của modal là màu sự kiện
+                    $modalContent.css('background-color', calEvent.color);
+
+                    // Thêm nội dung vào modal
+                    $modalBody.append('<p>' + start + ' de ' + start_time + ' à ' + end_time + '</p>');
+                    $modalBody.append('<p>Matière: ' + title + '</p>');
+                    $modalBody.append('<p>Catégorie: ' + extendedProps.category + '</p>');
+                    $modalBody.append('<p>Salle: ' + extendedProps.room + '</p>');
+                    $modalBody.append('<p>Enseignant: ' + extendedProps.teacher + '</p>');
+                    $modalBody.append('<p>Capacité d\'accueil: ' + extendedProps.capacity + '</p>');
+                    $modalBody.append('<p>Nombre de sessions: ' + extendedProps.nbr_session + '</p>');
+                    $modalBody.append('<p>Durée de la session: ' + extendedProps.duration + ' minutes' + '</p>');
+                    $modalBody.append('<p class="line-break">Horaires disponibles pour ce cours : ' + extendedProps.horrairedisponibilities + '</p>');
+                    $modalBody.append('<p class="line-break">Salles disponibles pour ce cours : ' + extendedProps.roomdisponibilities + '</p>');
+                    $modalBody.append('<p class="line-break">Enseignant(s) pouvant(s) assurer le cours : ' + extendedProps.teacherdisponibilities + '</p>');
+
+                    // Hiển thị modal
+                    $modal.modal('show');
+                },
+                eventRender: function (event, element) {
+                    // Các xử lý hiển thị sự kiện...
+                    element.css('background-color', event.color);
+                    element.css('border-color', event.color);
+
+                    // Thực hiện lọc sự kiện dựa trên các giá trị hiện tại của các bộ lọc
+                    if (roomFilterValue && !event.extendedProps.room.includes(roomFilterValue)) {
+                        //console.log(event.extendedProps.room);
+                        return false;
+                    }
+                    if (teacherFilterValue && !event.extendedProps.teacher.includes(teacherFilterValue)) {
+                        //console.log(event.extendedProps.teacher);
+                        return false;
+                    }
+                    if (categoryFilterValue && event.extendedProps.category[0] !== categoryFilterValue) {
+                        //console.log(event.extendedProps.category);
+                        return false;
+                    }
+                    if (matiereFilterValue && event.title !== matiereFilterValue) {
+                        return false;
+                    }
+                },
+            });
+        });
+
+    </script>
+{% endblock %}
+

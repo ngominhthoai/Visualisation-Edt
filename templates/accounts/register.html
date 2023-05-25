@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container">
+        <br>
+        <h2 class="text-center">Inscription</h2>
+        <hr>
+        <br>
+        <form method="post" onsubmit="return validateForm()" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_email">Email :</label>
+                <input type="email" name="email" class="form-control" autofocus required id="id_email"
+                       onblur="validateEmail()">
+                <div class="invalid-feedback" id="emailError"></div>
+            </div>
+            <div class="form-group">
+                <label for="id_password1">Mot de passe :</label>
+                <input type="password" name="password1" class="form-control" autocomplete="new-password" required
+                       id="id_password1"
+                       onblur="validatePassword()">
+                <div class="invalid-feedback" id="passwordError"></div>
+            </div>
+            <div class="form-group">
+                <label for="id_password2">Confirmation du mot de passe :</label>
+                <input type="password" name="password2" class="form-control" autocomplete="new-password" required
+                       id="id_password2"
+                       onblur="validatePassword()">
+                <div class="invalid-feedback" id="passwordMatchError"></div>
+            </div>
+            <div class="form-group">
+                <label for="id_first_name">Prénom :</label>
+                <input type="text" name="first_name" class="form-control" maxlength="255" required id="id_first_name"
+                       onblur="validateFirstName()">
+                <div class="invalid-feedback" id="firstNameError"></div>
+            </div>
+            <div class="form-group">
+                <label for="id_last_name">Nom :</label>
+                <input type="text" name="last_name" class="form-control" maxlength="255" required id="id_last_name"
+                       onblur="validateLastName()">
+                <div class="invalid-feedback" id="lastNameError"></div>
+            </div>
+            <div class="form-group">
+                <label for="id_mobile">Téléphone :</label>
+                <input type="text" name="mobile" class="form-control" maxlength="50" required id="id_mobile"
+                       onblur="validatePhone()">
+                <div class="invalid-feedback" id="phoneError"></div>
+            </div>
+            <button type="submit" class="btn btn-primary">S'inscrire</button>
+        </form>
+
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>
+        <script>
+            var valide = false;
+
+            function validateEmail() {
+                var emailInput = document.getElementById("id_email");
+                var emailError = document.getElementById("emailError");
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(emailInput.value)) {
+                    emailError.innerText = "Email is invalid. Please enter a valid email.";
+                    emailInput.classList.add("error");
+                    valide = false;
+                } else {
+                    emailError.innerText = "";
+                    emailInput.classList.remove("error");
+                    valide = true;
+                }
+            }
+
+            function validatePassword() {
+                var passwordInput = document.getElementById("id_password1");
+                var passwordError = document.getElementById("passwordError");
+                var passwordMatchError = document.getElementById("passwordMatchError");
+                var password2Input = document.getElementById("id_password2");
+                var passwordStrength = zxcvbn(passwordInput.value).score;
+                if (passwordStrength < 3) {
+                    passwordError.innerText = "Password is too weak. Please choose a stronger password.";
+                    passwordInput.classList.add("error");
+                    valide = false;
+                } else {
+                    passwordError.innerText = "";
+                    passwordInput.classList.remove("error");
+                    valide = true;
+                }
+
+                if (passwordInput.value !== password2Input.value) {
+                    passwordMatchError.innerText = "Passwords do not match. Please try again.";
+                    password2Input.classList.add("error");
+                    valide = false;
+                } else {
+                    passwordMatchError.innerText = "";
+                    password2Input.classList.remove("error");
+                    valide = true;
+                }
+            }
+
+            function validateFirstName() {
+                var firstNameInput = document.getElementById("id_first_name");
+                var firstNameError = document.getElementById("firstNameError");
+                var nameRegex = /^[a-zA-Z]+$/;
+                if (!nameRegex.test(firstNameInput.value)) {
+                    firstNameError.innerText = "First name is invalid. Please enter a valid first name.";
+                    firstNameInput.classList.add("error");
+                    valide = false;
+                } else {
+                    firstNameError.innerText = "";
+                    firstNameInput.classList.remove("error");
+                    valide = true;
+                }
+            }
+
+            function validateLastName() {
+                var lastNameInput = document.getElementById("id_last_name");
+                var lastNameError = document.getElementById("lastNameError");
+                var nameRegex = /^[a-zA-Z]+$/;
+                if (!nameRegex.test(lastNameInput.value)) {
+                    lastNameError.innerText = "Last name is invalid. Please enter a valid last name.";
+                    lastNameInput.classList.add("error");
+                    valide = false;
+                } else {
+                    lastNameError.innerText = "";
+                    lastNameInput.classList.remove("error");
+                    valide = true;
+                }
+            }
+
+            function validatePhone() {
+                var phoneInput = document.getElementById("id_mobile");
+                var phoneError = document.getElementById("phoneError");
+                var phoneRegex = /^\d{3}[-.]\d{3}[-.]\d{4}$/; // 123-456-7890
+                if (!phoneRegex.test(phoneInput.value)) {
+                    phoneError.innerText = "Phone number is invalid. Please enter a valid phone number in 123-456-7890 format.";
+                    phoneInput.classList.add("error");
+                    valide = false;
+                } else {
+                    phoneError.innerText = "";
+                    phoneInput.classList.remove("error");
+                    valide = true;
+                }
+            }
+
+            function validateForm() {
+                if (valide === false) {
+                    alert("Please fill out the form correctly.");
+                    return false; // Ngăn chặn submit form
+                }
+                return true; // Cho phép submit form
+            }
+        </script>
+
+        <style>
+            .error {
+                border-color: red;
+            }
+        </style>
+
+    </div>
+{% endblock %}
+
+ {#        <form method="post" onsubmit="return validateForm()">#}
+        {#            {% csrf_token %}#}
+        {#            <div class="form-group">#}
+        {#                <p>#}
+        {#                    <label for="id_email">Email:</label>#}
+        {#                    <input type="email" name="email" autofocus="" required="" id="id_email" onblur="validateEmail()">#}
+        {#                    <span id="emailError" class="error"></span>#}
+        {#                </p>#}
+        {#            </div>#}
+        {#            <p>#}
+        {#                <label for="id_password1">Password:</label>#}
+        {#                <input type="password" name="password1" autocomplete="new-password" required="" id="id_password1"#}
+        {#                       onblur="validatePassword()">#}
+        {#                <span id="passwordError" class="error"></span>#}
+        {#            </p>#}
+        {#            <p>#}
+        {#                <label for="id_password2">Password confirmation:</label>#}
+        {#                <input type="password" name="password2" autocomplete="new-password" required="" id="id_password2"#}
+        {#                       onblur="validatePassword()">#}
+        {#                <span id="passwordMatchError" class="error"></span>#}
+        {#            </p>#}
+        {#            <p>#}
+        {#                <label for="id_first_name">First name:</label>#}
+        {#                <input type="text" name="first_name" maxlength="255" required="" id="id_first_name"#}
+        {#                       onblur="validateFirstName()">#}
+        {#                <span id="firstNameError" class="error"></span>#}
+        {#            </p>#}
+        {#            <p>#}
+        {#                <label for="id_last_name">Last name:</label>#}
+        {#                <input type="text" name="last_name" maxlength="255" required="" id="id_last_name"#}
+        {#                       onblur="validateLastName()">#}
+        {#                <span id="lastNameError" class="error"></span>#}
+        {#            </p>#}
+        {#            <p>#}
+        {#                <label for="id_mobile">Mobile:</label>#}
+        {#                <input type="text" name="mobile" maxlength="50" required="" id="id_mobile" onblur="validatePhone()">#}
+        {#                <span id="phoneError" class="error"></span>#}
+        {#            </p>#}
+        {#            <button type="submit">Register</button>#}
+        {#        </form>#}
