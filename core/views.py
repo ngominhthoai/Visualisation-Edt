@@ -222,7 +222,7 @@ def load_events(request):
     #     date_start = datetime.strptime(date_start, '%Y-%m-%d')
     #
     # print(date_start)
-    edt_id = Edt.objects.get(id=41)
+    edt_id = Edt.objects.get(id=40)
     events = []
     sessions = Session.objects.filter(edt=edt_id)
 
@@ -345,13 +345,14 @@ def load_events1(request):
     # giảm 1 tuần 1 ngày
     start_date = start_date - timedelta(weeks=1, days=1)
 
-    edt= Edt.objects.get(id=40)
+    edt= Edt.objects.get(id=41)
     sessions = Session.objects.filter(edt=edt)
     session_list = []
     salle_list = []
     prof_list = []
     category_list = []
     matiere_list = []
+    groupe_list = []
 
     for session in sessions:
         duration = session.classe.part.sessionLength
@@ -422,6 +423,16 @@ def load_events1(request):
         except SessionTeacher.DoesNotExist:
             teacher_names = None
 
+        # groups
+        try:
+            group_classes = GroupClass.objects.select_related('group').filter(classe=session.classe, edt=edt)
+            group_names = [group_class.group.groupname for group_class in group_classes]
+            # add group to list with id and name
+            for group in group_names:
+                if group not in groupe_list:
+                    groupe_list.append(group)
+        except GroupClass.DoesNotExist:
+            group_names = None
 
         # (room disponibilities)
         try:
@@ -479,6 +490,7 @@ def load_events1(request):
                 'roomdisponibilities': room_disponibilities,
                 'teacherdisponibilities': teacher_disponibilities,
                 'horrairedisponibilities': time_slots,
+                'group': group_names,
             },
         }
 
@@ -493,6 +505,7 @@ def load_events1(request):
         prof_list.sort()
         category_list.sort()
         matiere_list.sort()
+        groupe_list.sort()
 
 
     context = {
@@ -501,6 +514,7 @@ def load_events1(request):
         'profs': prof_list,
         'categories': category_list,
         'matieres': matiere_list,
+        'groupes': groupe_list,
     }
 
 

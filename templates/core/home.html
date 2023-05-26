@@ -38,18 +38,22 @@
         <div class="col-3" style="background: cornsilk">
             <h3 class="text-center">Filtres</h3>
             <div id="accordion" class="accordion">
-                <h3>Room</h3>
+                <h3>Salles</h3>
                 <div>
                     <div id="roomFilter" class="filter-select">
+                        <label><input type="checkbox" class="filter-checkbox" id="roomFilter_none" value="none">Pas
+                            de salle</label> <br>
                         {% for salle in salles %}
                             <label><input type="checkbox" class="filter-checkbox" id="roomFilter_{{ forloop.counter }}"
                                           value="{{ salle }}">{{ salle }}</label> <br>
                         {% endfor %}
                     </div>
                 </div>
-                <h3>Teacher</h3>
+                <h3>Enseignants</h3>
                 <div>
                     <div id="teacherFilter" class="filter-select">
+                        <label><input type="checkbox" class="filter-checkbox" id="teacherFilter_none"
+                                      value="none">Pas d'enseignant</label> <br>
                         {% for prof in profs %}
                             <div>
                                 <label> <input type="checkbox" id="teacherFilter_{{ forloop.counter }}"
@@ -58,7 +62,7 @@
                         {% endfor %}
                     </div>
                 </div>
-                <h3>Category</h3>
+                <h3>Categories</h3>
                 <div>
                     <div id="categoryFilter" class="filter-select">
                         {% for cat in categories %}
@@ -69,13 +73,24 @@
                         {% endfor %}
                     </div>
                 </div>
-                <h3>Matière</h3>
+                <h3>Matières</h3>
                 <div>
                     <div id="matiereFilter" class="filter-select">
                         {% for mat in matieres %}
                             <div>
                                 <label><input type="checkbox" id="matiereFilter_{{ forloop.counter }}"
                                               class="filter-checkbox" value="{{ mat }}"> {{ mat }}</label><br>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <h3>Groupes</h3>
+                <div>
+                    <div id="groupeFilter" class="filter-select">
+                        {% for groupe in groupes %}
+                            <div>
+                                <label><input type="checkbox" id="groupeFilter_{{ forloop.counter }}"
+                                              class="filter-checkbox" value="{{ groupe }}"> {{ groupe }}</label><br>
                             </div>
                         {% endfor %}
                     </div>
@@ -115,6 +130,7 @@
             var teacherFilterValues = [];
             var categoryFilterValues = [];
             var matiereFilterValues = [];
+            var groupeFilterValues = [];
 
             // traite les données de l'événement quand on change les filtres
             //$('.filter-group h5').click(function () {
@@ -135,6 +151,7 @@
                 teacherFilterValues = getFilterValues('teacherFilter');
                 categoryFilterValues = getFilterValues('categoryFilter');
                 matiereFilterValues = getFilterValues('matiereFilter');
+                groupeFilterValues = getFilterValues('groupeFilter');
 
                 // Gọi hàm reRenderCalendar để làm mới lịch hiển thị
                 rerenderCalendar();
@@ -146,7 +163,7 @@
                 $('#' + filterId + ' input[type="checkbox"]:checked').each(function () {
                     filterValues.push($(this).val());
                 })
-                console.log(filterValues);
+                {#console.log(filterValues);#}
                 return filterValues;
             }
 
@@ -163,6 +180,16 @@
                     }
                 }
                 return true;
+            }
+
+            // Hàm kiểm tra xem một mảng có phải là một mảng rỗng không
+            function isArrayEmpty(array) {
+                return array.length === 0;
+            }
+
+            // Hàm kiểm tra xem một mảng có chỉ chứa giá trị "none" không
+            function isArrayNone(array) {
+                return array.length === 1 && array[0] === "none";
             }
 
             // Hàm làm mới lịch hiển thị dựa trên các bộ lọc
@@ -212,6 +239,7 @@
                     $modalDialog.append($modalContent);
                     $modal.append($modalDialog);
 
+
                     // Đặt màu nền của modal là màu sự kiện
                     $modalContent.css('background-color', calEvent.color);
 
@@ -226,9 +254,9 @@
                     $modalBody.append('<p>Durée de la session: ' + extendedProps.duration + ' minutes' + '</p>');
                     $modalBody.append('<p class="line-break">Horaires disponibles pour ce cours : ' + extendedProps.horrairedisponibilities + '</p>');
                     $modalBody.append('<p class="line-break">Salles disponibles pour ce cours : ' + extendedProps.roomdisponibilities + '</p>');
+                    $modalBody.append('<p class="line-break">Groupe(s) : ' + extendedProps.group + '</p>');
                     $modalBody.append('<p class="line-break">Enseignant(s) pouvant(s) assurer le cours : ' + extendedProps.teacherdisponibilities + '</p>');
                     // Hiển thị modal
-                    console.log(extendedProps.category);
                     $modal.modal('show');
                 },
                 eventRender: function (event, element) {
@@ -236,11 +264,21 @@
                     element.css('background-color', event.color);
                     element.css('border-color', event.color);
 
-                    // Lọc các sự kiện dựa trên các bộ lọc
+
+                    // filter des events en fonction des filtres
+                    if (roomFilterValues.includes('none') && isArrayEmpty(event.extendedProps.room)) {
+                        return true;
+                    }
+                    if (teacherFilterValues.includes('none') && isArrayEmpty(event.extendedProps.teacher)) {
+                        return true;
+                    }
                     if (roomFilterValues.length > 0 && !event.extendedProps.room.some(room => roomFilterValues.includes(room))) {
                         return false;
                     }
                     if (teacherFilterValues.length > 0 && !event.extendedProps.teacher.some(teacher => teacherFilterValues.includes(teacher))) {
+                        return false;
+                    }
+                    if (groupeFilterValues.length > 0 && !event.extendedProps.group.some(groupe => groupeFilterValues.includes(groupe))) {
                         return false;
                     }
                     if (categoryFilterValues.length > 0 && !categoryFilterValues.some(category => event.extendedProps.category[0].split(',').includes(category))) {
