@@ -340,7 +340,12 @@ def load_events(request):
 
 # retourne les events d'un edt sous forme d'une liste de dictionnaires
 def load_events1(request):
-    edt= Edt.objects.get(id=41)
+    start_date = "22/05/2023"
+    start_date = datetime.strptime(start_date, "%d/%m/%Y")
+    # giảm 1 tuần 1 ngày
+    start_date = start_date - timedelta(weeks=1, days=1)
+
+    edt= Edt.objects.get(id=40)
     sessions = Session.objects.filter(edt=edt)
     session_list = []
     salle_list = []
@@ -370,9 +375,14 @@ def load_events1(request):
             part_labels = PartLabel.objects.select_related('label').filter(part=session.classe.part, edt=edt)
             label_names = [part_label.label.labelname for part_label in part_labels]
             # add category to list with id and name
+            #split category names with comma
             for category in label_names:
-                if category not in category_list:
-                    category_list.append(category)
+                # split category names with comma
+                category = category.split(',')
+               # add category to list with id and name
+                for cat in category:
+                    if cat not in category_list:
+                        category_list.append(cat)
         except PartLabel.DoesNotExist:
             label_names = None
 
@@ -441,6 +451,7 @@ def load_events1(request):
             else:
                 time_grid.append(int(slot))  # ajouter le slot seul
 
+
         # convertir de slot à heure et minute
         time_slots = []
         for slot in time_grid:
@@ -448,7 +459,8 @@ def load_events1(request):
             minute = (slot % 60)  # la partie décimale est les minutes
             time_slots.append(f"{hour:02d}:{minute:02d}")  # formater l'heure et les minutes en chaîne hh:mm
 
-        start_time = datetime(2023, 1, 1) + timedelta(weeks=session.week, days=session.day, minutes=session.daily_slot)
+
+        start_time = start_date + timedelta(weeks=session.week, days=session.day, minutes=session.daily_slot)
         end_time = start_time + timedelta(minutes=duration)
 
 
@@ -482,6 +494,7 @@ def load_events1(request):
         category_list.sort()
         matiere_list.sort()
 
+
     context = {
         'sessions': session_list,
         'salles': salle_list,
@@ -489,6 +502,7 @@ def load_events1(request):
         'categories': category_list,
         'matieres': matiere_list,
     }
+
 
     return render(request, 'core/home.html', context)
 
