@@ -64,5 +64,3 @@ To use this application, please follow the steps below:
    - Use the admin credentials created in step 4 to log in and access the admin panel.
 
 Please note that these instructions assume a basic familiarity with command-line tools and Python development. Adjustments may be necessary depending on your specific environment and requirements.
-
-If you encounter any issues during installation or usage, please refer to the project's documentation or seek assistance from the project's support channels.
