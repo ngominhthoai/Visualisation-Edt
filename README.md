@@ -7,7 +7,7 @@
 
 - The project is based on the original project: https://github.com/bessantoy/Calendar-viewer, but with additional enhancements aimed at improving speed.
 
-- Sample XML files for testing the application are located in the media directory.
+- Sample XML files for testing the application are located in the media directory
 
 - The sample XML files are validated against the XML schema structure at: https://ua-usp.github.io/timetabling/schema
 
@@ -15,6 +15,14 @@
 
 # Application screenshots:
 <img width="1439" alt="Screenshot 2023-05-27 at 03 04 57" src="https://github.com/ngominhthoai/Visualisation-Edt/assets/44940464/df6c7167-531b-421c-b48d-1ba7a34fbf36">
+
+# Schema (diagram) of the tables in the database: 
+
+[schema.pdf](https://github.com/ngominhthoai/Visualisation-Edt/files/11580734/schema.pdf)
+
+![348390561_966638904362619_5868854456923449215_n (1)](https://github.com/ngominhthoai/Visualisation-Edt/assets/44940464/7d3058ff-471f-42ab-aeb5-766be47dcac7)
+
+
 
 # Installation and usage:
 
