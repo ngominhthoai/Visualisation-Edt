@@ -12,5 +12,6 @@ urlpatterns = [
     path('load_events/', views.load_events, name='load_events'),
     path('load_events1/', views.load_events1, name='load_events1'),
     path('load_events2/', views.load_events2, name='load_events2'),
+    path('load_events3/', views.load_events3, name='load_events3'),
     path('edt_list/', views.edt_list, name='edt_list'),
 ]

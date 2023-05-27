@@ -7,8 +7,9 @@
 {% block content %}
     <div class="container">
         <form id="upload-form">
-            <input type="file" name="xml-file">
-            <button type="submit">Upload</button>
+            <input type="text" name="edtname" placeholder="Enter EDT name" required><br>
+            <input type="file" name="xml-file"><br>
+            <button type="submit" class="btn btn-primary">Upload</button>
         </form>
 
         <div id="message"></div>
@@ -92,7 +93,7 @@ $(document).ready(function () {
 });
 
     </script>
-
+{% endblock %}
 
 
 {# <script>#}
@@ -232,6 +233,6 @@ $(document).ready(function () {
     {#            });#}
     {#        });#}
     {#    </script>#}
-{% endblock %}
+
 
 

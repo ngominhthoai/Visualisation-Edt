@@ -70,7 +70,7 @@
                 maxTime: "21:00:00",
                 eventSources: [
                     {
-                        url: '{% url "load_events" %}',
+                        url: '{% url "load_events3" %}',
                         type: 'GET',
                         /*data: function () {
                             var view = $('#calendar').fullCalendar('getView');
@@ -130,6 +130,7 @@
                     $modalBody.append('<p>Durée de la session: ' + extendedProps.duration + ' minutes' + '</p>');
                     $modalBody.append('<p class="line-break">Horaires disponibles pour ce cours : ' + extendedProps.horrairedisponibilities + '</p>');
                     $modalBody.append('<p class="line-break">Salles disponibles pour ce cours : ' + extendedProps.roomdisponibilities + '</p>');
+                    $modalBody.append('<p class="line-break">Groupe(s) : ' + extendedProps.group + '</p>');
                     $modalBody.append('<p class="line-break">Enseignant(s) pouvant(s) assurer le cours : ' + extendedProps.teacherdisponibilities + '</p>');
 
                     // Hiển thị modal

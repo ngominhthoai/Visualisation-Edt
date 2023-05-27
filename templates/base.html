@@ -36,7 +36,7 @@
         {#        </a>#}
         {% if user.is_authenticated %}
             {% if user.is_staff %}
-                <a class="navbar-brand" href="{% url 'home' %}">Accueil</a>
+                <a class="navbar-brand" href="{% url 'home' %}">Version 0</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
                         aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -49,7 +49,13 @@
                         <a class="nav-link" href="{% url 'chargerXml' %}">Charger fichier</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'load_events1' %}">Load event1</a>
+                        <a class="nav-link" href="{% url 'load_events1' %}">Version1</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'load_events2' %}">Version2</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'load_events3' %}">Version3</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'edt_list' %}">Liste des EDTs</a>

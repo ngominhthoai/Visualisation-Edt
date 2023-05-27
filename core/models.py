@@ -4,6 +4,8 @@ from django.conf import settings
 
 class Edt(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    edtname = models.CharField(max_length=255)
+    dateAjoute = models.DateTimeField(auto_now_add=True, blank=True)
 
 
 class Label(models.Model):

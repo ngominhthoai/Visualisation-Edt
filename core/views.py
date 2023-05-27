@@ -25,12 +25,13 @@ import xml.etree.ElementTree as ET
 
 def create_objects_from_xml(request):
     if request.method == 'POST':
+        edtname = request.POST.get('edtname')
         xml_file = request.FILES.get('xml-file')
         tree = ET.parse(xml_file)
         root = tree.getroot()
 
         #creer Edt object
-        edt = Edt(user=request.user)
+        edt = Edt(user=request.user, edtname=edtname)
         edt.save()
 
         # last edt
@@ -345,7 +346,7 @@ def load_events1(request):
     # giảm 1 tuần 1 ngày
     start_date = start_date - timedelta(weeks=1, days=1)
 
-    edt= Edt.objects.get(id=41)
+    edt= Edt.objects.get(id=40)
     sessions = Session.objects.filter(edt=edt)
     session_list = []
     salle_list = []
@@ -353,6 +354,7 @@ def load_events1(request):
     category_list = []
     matiere_list = []
     groupe_list = []
+
 
     for session in sessions:
         duration = session.classe.part.sessionLength
@@ -373,7 +375,7 @@ def load_events1(request):
 
         #category
         try:
-            part_labels = PartLabel.objects.select_related('label').filter(part=session.classe.part, edt=edt)
+            part_labels = PartLabel.objects.select_related('label').filter(part=session.classe.part)
             label_names = [part_label.label.labelname for part_label in part_labels]
             # add category to list with id and name
             #split category names with comma
@@ -387,7 +389,7 @@ def load_events1(request):
         except PartLabel.DoesNotExist:
             label_names = None
 
-
+        print(label_names)
         colors = [category_colors.get(category, 'gray') for category in label_names]
 
         # room
@@ -526,122 +528,98 @@ def edt_list(request):
     context = {
         'edts': edts
     }
-    return render(request, 'core/edt_list.html', context)
+    return render(request, 'core/home2.html', context)
 
 def home2(request):
     return render(request, 'core/calendar2.html')
 
 def load_events2(request):
-    # start_date = request.GET.get('start')  # Get the start date from the request
-    # end_date = request.GET.get('end')  # Get the end date from the request
-    edt_id = request.POST.get('edt_id')
-    date_start = request.POST.get('date')
-    # if date_start is null, date_start = today
-    if date_start is None:
-        date_start = datetime.now()
-    else:
-        date_start = datetime.strptime(date_start, '%Y-%m-%d')
-    #
-    # print(date_start)
-    # edt_id = Edt.objects.get(id=41)
-    events = []
-    sessions = Session.objects.filter(edt=edt_id)
+    # edts = Edt.objects.filter(user=request.user)
+
+    start_date = "22/05/2023"
+    start_date = datetime.strptime(start_date, "%d/%m/%Y")
+    # giảm 1 tuần 1 ngày
+    start_date = start_date - timedelta(weeks=1, days=1)
+
+    edt = Edt.objects.get(id=2)
+    sessions = Session.objects.filter(edt=edt)
+
+    session_list = []
+
+    salle_list = []
+    prof_list = []
+    category_list = []
+    matiere_list = []
+    groupe_list = []
+
+    category_colors = {
+        'CC': 'blue',
+        'CT': 'red',
+        'EVAL,CC': 'green',
+        'TP': 'orange',
+        'CM': 'purple',
+        'TD': 'yellow',
+        'CTD': 'pink',
+        'REPAS': 'brown',
+        'Virtuelle': 'gray',
+        'CM,TD': 'teal'
+    }
+
+    part_dict = {part.id: part for part in Part.objects.filter(edt=edt)}
+
+    label_dict = {part_label.id: part_label.label.labelname for part_label in
+                  PartLabel.objects.select_related('label').filter(part__in=part_dict.keys())}
+
+    room_dict = {session_room.id: session_room.room.roomname for session_room in SessionRoom.objects.select_related('room').filter(classe__in=sessions.values('classe'), rank__in=sessions.values('rank'), edt=edt)}
+    teacher_dict = {session_teacher.id: session_teacher.teacher.teachername for session_teacher in SessionTeacher.objects.select_related('teacher').filter(classe__in=sessions.values('classe'), rank__in=sessions.values('rank'), edt=edt)}
+    group_dict = {group_class.id: group_class.group.groupname for group_class in GroupClass.objects.select_related('group').filter(classe__in=sessions.values('classe'), edt=edt)}
+    allowed_room_dict = {allowed_room.id: allowed_room.room.roomname for allowed_room in AllowedRoom.objects.filter(part__in=sessions.values('classe__part'), edt=edt)}
+    allowed_teacher_dict = {allowed_teacher.id: allowed_teacher.teacher.teachername for allowed_teacher in AllowedTeacher.objects.filter(part__in=sessions.values('classe__part'), edt=edt)}
+
 
     for session in sessions:
         duration = session.classe.part.sessionLength
         nbr_session = session.classe.part.nrSessions
 
-        category_colors = {
-            'CC': 'blue',
-            'CT': 'red',
-            'EVAL,CC': 'green',
-            'TP': 'orange',
-            'CM': 'purple',
-            'TD': 'yellow',
-            'CTD': 'pink',
-            'REPAS': 'brown',
-            'Virtuelle': 'gray',
-            'CM,TD': 'teal'
-        }
-
-        # category
-        try:
-            part_labels = PartLabel.objects.select_related('label').filter(part=session.classe.part, edt=edt_id)
-            label_names = [part_label.label.labelname for part_label in part_labels]
-        except PartLabel.DoesNotExist:
-            label_names = None
+        label_ids = [part_label.id for part_label in
+                     PartLabel.objects.select_related('label').filter(part=session.classe.part)]
+        label_names = [label_dict[label_id] for label_id in label_ids]
 
         colors = [category_colors.get(category, 'gray') for category in label_names]
 
-        # room
-        try:
-            session_rooms = SessionRoom.objects.select_related('room').filter(classe=session.classe, rank=session.rank,
-                                                                              edt=edt_id)
-            room_names = [session_room.room.roomname for session_room in session_rooms]
-        except SessionRoom.DoesNotExist:
-            room_names = None
+        room_names = [room_dict[session_room.id] for session_room in SessionRoom.objects.select_related('room').filter(classe=session.classe, rank=session.rank, edt=edt)]
 
-        #capacite de la salle( room capacity)
-        try:
-            session_rooms = SessionRoom.objects.select_related('room').filter(classe=session.classe, rank=session.rank,
-                                                                              edt=edt_id)
-            room_capacity = [session_room.room.capacity for session_room in session_rooms]
-        except SessionRoom.DoesNotExist:
-            room_capacity = None
+        room_capacity = [session_room.room.capacity for session_room in SessionRoom.objects.select_related('room').filter(classe=session.classe, rank=session.rank, edt=edt)]
 
-        # teacher
-        try:
-            session_teachers = SessionTeacher.objects.select_related('teacher').filter(classe=session.classe, rank=session.rank,
-                                                                              edt=edt_id)
-            teacher_names = [session_teacher.teacher.teachername for session_teacher in session_teachers]
-        except SessionTeacher.DoesNotExist:
-            teacher_names = None
+        teacher_names = [teacher_dict[session_teacher.id] for session_teacher in SessionTeacher.objects.select_related('teacher').filter(classe=session.classe, rank=session.rank, edt=edt)]
 
+        group_names = [group_dict[group_class.id] for group_class in GroupClass.objects.select_related('group').filter(classe=session.classe, edt=edt)]
 
-        # (room disponibilities)
-        try:
-            allowed_rooms = AllowedRoom.objects.filter(part=session.classe.part, edt=edt_id)
-            room_disponibilities = [allowed_room.room.roomname for allowed_room in allowed_rooms]
-        except AllowedRoom.DoesNotExist:
-            room_disponibilities = None
+        room_disponibilities = [allowed_room_dict[allowed_room.id] for allowed_room in AllowedRoom.objects.filter(part=session.classe.part, edt=edt)]
 
-        # (teacher disponibilities)
-        try:
-            allowed_teachers = AllowedTeacher.objects.filter(part=session.classe.part, edt=edt_id)
-            teacher_disponibilities = [allowed_teacher.teacher.teachername for allowed_teacher in allowed_teachers]
-        except AllowedTeacher.DoesNotExist:
-            teacher_disponibilities = None
-
-        # horraire disponibilities
-        part = session.classe.part
-        slots = part.dailySlots.split(',')  # convert dailySlots to list
+        teacher_disponibilities = [allowed_teacher_dict[allowed_teacher.id] for allowed_teacher in AllowedTeacher.objects.filter(part=session.classe.part, edt=edt)]
 
         time_grid = []
+        slots = part_dict[session.classe.part_id].dailySlots.split(',') if session.classe.part_id in part_dict else []
         for slot in slots:
-            if '-' in slot:  # traite les slots contenant un tiret
+            if '-' in slot:
                 start, end = slot.split('-')
                 start = int(start)
                 end = int(end)
-                time_grid.extend(list(range(start, end + 1)))  # ajoute les slots dans l'intervalle
+                time_grid.extend(list(range(start, end + 1)))
             else:
-                time_grid.append(int(slot))  # ajoute le slot simple
+                time_grid.append(int(slot))
 
-        # convertir les slots en hh:mm
-        time_slots = []
-        for slot in time_grid:
-            hour = (slot // 60)  # la partie entière est l'heure
-            minute = (slot % 60)  # le reste est les minutes
-            time_slots.append(f"{hour:02d}:{minute:02d}")  # convertir en hh:mm
+        time_slots = [f"{slot // 60:02d}:{slot % 60:02d}" for slot in time_grid]
 
-
-        start_time = date_start + timedelta(weeks=session.week, days=session.day, minutes=session.daily_slot)
+        start_time = start_date + timedelta(weeks=session.week, days=session.day, minutes=session.daily_slot)
         end_time = start_time + timedelta(minutes=duration)
 
-        event = {
+        session_dict = {
             'title': session.classe.classename,
             'start': start_time.isoformat(),
             'end': end_time.isoformat(),
-            'color': colors[0],  #utiliser la première couleur de la liste des couleurs
+            'color': colors[0] if colors else 'gray',
             'extendedProps': {
                 'duration': duration,
                 'nbr_session': nbr_session,
@@ -649,9 +627,157 @@ def load_events2(request):
                 'teacher': teacher_names,
                 'room': room_names,
                 'category': label_names,
-                # 'roomdisponibilities': room_disponibilities,
-                # 'teacherdisponibilities': teacher_disponibilities,
-                # 'horrairedisponibilities': time_slots,
+                'roomdisponibilities': room_disponibilities,
+                'teacherdisponibilities': teacher_disponibilities,
+                'horrairedisponibilities': time_slots,
+                'group': group_names,
+            },
+        }
+
+        if session.classe.classename not in matiere_list:
+            matiere_list.append(session.classe.classename)
+
+        session_list.append(session_dict)
+
+        salle_list.extend(room_names)
+        prof_list.extend(teacher_names)
+        category_list.extend(label_names)
+        groupe_list.extend(group_names)
+
+    salle_list = list(set(salle_list))  # Xóa các phần tử trùng lặp trong danh sách
+    prof_list = list(set(prof_list))
+    category_list = list(set(category_list))
+    matiere_list = sorted(matiere_list)
+    groupe_list = list(set(groupe_list))
+
+    #split category_list by comma and remove duplicates
+    category_list = list(set([category for category in ','.join(category_list).split(',') if category != '']))
+
+    # trier les listes
+    salle_list.sort()
+    prof_list.sort()
+    category_list.sort()
+    groupe_list.sort()
+    matiere_list.sort()
+
+    context = {
+        'sessions': session_list,
+        'salles': salle_list,
+        'profs': prof_list,
+        'categories': category_list,
+        'matieres': matiere_list,
+        'groupes': groupe_list,
+        # 'edts': edts,
+    }
+
+    return render(request, 'core/home2.html', context)
+
+
+def load_events3(request):
+    start_date = "22/05/2023"
+    start_date = datetime.strptime(start_date, "%d/%m/%Y")
+
+    # giảm 1 tuần 1 ngày
+    start_date = start_date - timedelta(weeks=1, days=1)
+
+    edt = Edt.objects.get(id=41)
+    events = []
+    sessions = Session.objects.filter(edt=edt)
+
+    category_colors = {
+        'CC': 'blue',
+        'CT': 'red',
+        'EVAL,CC': 'green',
+        'TP': 'orange',
+        'CM': 'purple',
+        'TD': 'yellow',
+        'CTD': 'pink',
+        'REPAS': 'brown',
+        'Virtuelle': 'gray',
+        'CM,TD': 'teal'
+    }
+
+    part_dict = {part.id: part for part in Part.objects.filter(edt=edt)}
+
+    label_dict = {part_label.id: part_label.label.labelname for part_label in
+                  PartLabel.objects.select_related('label').filter(part__in=part_dict.keys())}
+
+    room_dict = {session_room.id: session_room.room.roomname for session_room in
+                 SessionRoom.objects.select_related('room').filter(classe__in=sessions.values('classe'),
+                                                                   rank__in=sessions.values('rank'), edt=edt)}
+    teacher_dict = {session_teacher.id: session_teacher.teacher.teachername for session_teacher in
+                    SessionTeacher.objects.select_related('teacher').filter(classe__in=sessions.values('classe'),
+                                                                            rank__in=sessions.values('rank'), edt=edt)}
+    group_dict = {group_class.id: group_class.group.groupname for group_class in
+                  GroupClass.objects.select_related('group').filter(classe__in=sessions.values('classe'), edt=edt)}
+    allowed_room_dict = {allowed_room.id: allowed_room.room.roomname for allowed_room in
+                         AllowedRoom.objects.filter(part__in=sessions.values('classe__part'), edt=edt)}
+    allowed_teacher_dict = {allowed_teacher.id: allowed_teacher.teacher.teachername for allowed_teacher in
+                            AllowedTeacher.objects.filter(part__in=sessions.values('classe__part'), edt=edt)}
+
+    for session in sessions:
+        duration = session.classe.part.sessionLength
+        nbr_session = session.classe.part.nrSessions
+
+        label_ids = [part_label.id for part_label in
+                     PartLabel.objects.select_related('label').filter(part=session.classe.part)]
+        label_names = [label_dict[label_id] for label_id in label_ids]
+
+        colors = [category_colors.get(category, 'gray') for category in label_names]
+
+        room_names = [room_dict[session_room.id] for session_room in
+                      SessionRoom.objects.select_related('room').filter(classe=session.classe, rank=session.rank,
+                                                                        edt=edt)]
+
+        room_capacity = [session_room.room.capacity for session_room in
+                         SessionRoom.objects.select_related('room').filter(classe=session.classe, rank=session.rank,
+                                                                           edt=edt)]
+
+        teacher_names = [teacher_dict[session_teacher.id] for session_teacher in
+                         SessionTeacher.objects.select_related('teacher').filter(classe=session.classe,
+                                                                                 rank=session.rank, edt=edt)]
+
+        group_names = [group_dict[group_class.id] for group_class in
+                       GroupClass.objects.select_related('group').filter(classe=session.classe, edt=edt)]
+
+        room_disponibilities = [allowed_room_dict[allowed_room.id] for allowed_room in
+                                AllowedRoom.objects.filter(part=session.classe.part, edt=edt)]
+
+        teacher_disponibilities = [allowed_teacher_dict[allowed_teacher.id] for allowed_teacher in
+                                   AllowedTeacher.objects.filter(part=session.classe.part, edt=edt)]
+
+        time_grid = []
+        slots = part_dict[session.classe.part_id].dailySlots.split(',') if session.classe.part_id in part_dict else []
+        for slot in slots:
+            if '-' in slot:
+                start, end = slot.split('-')
+                start = int(start)
+                end = int(end)
+                time_grid.extend(list(range(start, end + 1)))
+            else:
+                time_grid.append(int(slot))
+
+        time_slots = [f"{slot // 60:02d}:{slot % 60:02d}" for slot in time_grid]
+
+        start_time = start_date + timedelta(weeks=session.week, days=session.day, minutes=session.daily_slot)
+        end_time = start_time + timedelta(minutes=duration)
+
+        event = {
+            'title': session.classe.classename,
+            'start': start_time.isoformat(),
+            'end': end_time.isoformat(),
+            'color':colors[0] if colors else 'gray',  #utiliser la première couleur de la liste des couleurs
+            'extendedProps': {
+                'duration': duration,
+                'nbr_session': nbr_session,
+                'capacity': room_capacity,
+                'teacher': teacher_names,
+                'room': room_names,
+                'category': label_names,
+                'roomdisponibilities': room_disponibilities,
+                'teacherdisponibilities': teacher_disponibilities,
+                'horrairedisponibilities': time_slots,
+                'group': group_names,
             },
         }
 
